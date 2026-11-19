@@ -1,6 +1,15 @@
 package no.skynet.mobile;
 
 import android.app.Activity;
+import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -37,6 +46,7 @@ public class MainActivity extends Activity {
     root.addView(btn("▦  Finn installerte apper",()->searchApps()));
     root.addView(btn("▤  Søk i lokal logg",()->searchLocal()));
     root.addView(btn("🎙  Stemmesøk",this::listen));
+    root.addView(btn("📡  Wi-Fi + Bluetooth-analyse",this::deviceIntel));
     output=label("Hei! Søk på nettet, finn en app eller søk i SKYNETs lokale logg.",15);output.setBackgroundColor(PANEL);root.addView(output);
     root.addView(label("Hurtigvalg",18));root.addView(btn("Status",()->command("status")));root.addView(btn("Personvern",()->command("personvern")));root.addView(btn("Åpne lokalt SKYNET-dashboard",this::dashboard));
     CheckBox cb=new CheckBox(this);cb.setText("Lokal hendelseslogg");cb.setTextColor(Color.WHITE);cb.setChecked(auditOn);cb.setOnCheckedChangeListener((v,on)->{auditOn=on;if(on)audit("audit_enabled");});root.addView(cb);
@@ -86,10 +96,115 @@ public class MainActivity extends Activity {
     if(s.contains("hjelp"))reply("SKYNET kan nettsøk, app-søk, lokalt loggsøk, stemmesøk, status og dashboard.");
     else if(s.contains("status"))reply("SKYNET er klar. Android "+android.os.Build.VERSION.RELEASE+". Lokal logg "+(auditOn?"på":"av")+".");
     else if(s.contains("personvern")||s.contains("sikkerhet"))reply("Ingen bakgrunnslytting. Mikrofon brukes manuelt. Loggen lagres lokalt.");
+    else if(s.contains("wifi")||s.contains("wi-fi")||s.contains("bluetooth")||s.contains("nettverk"))deviceIntel();
     else if(s.contains("dashboard")||s.contains("åpne skynet"))dashboard();
     else if(s.startsWith("les opp")){String t=q.length()>7?q.substring(7).trim():"SKYNET er klar.";reply(t);if(ttsReady)tts.speak(t,TextToSpeech.QUEUE_FLUSH,null,"skynet");}
     else {if(input!=null)input.setText(q);searchWeb();}
   }
+
+  void deviceIntel(){
+    if(android.os.Build.VERSION.SDK_INT>=31 &&
+       checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=PackageManager.PERMISSION_GRANTED){
+      requestPermissions(new String[]{Manifest.permission.BLUETOOTH_CONNECT},5201);
+      return;
+    }
+
+    StringBuilder report=new StringBuilder();
+    report.append("SKYNET • ENHETSINTELLIGENS\n\n");
+
+    try {
+      WifiManager wm=(WifiManager)getApplicationContext()
+          .getSystemService(Context.WIFI_SERVICE);
+      report.append("WI-FI\n");
+
+      if(wm!=null && wm.isWifiEnabled()){
+        WifiInfo wi=wm.getConnectionInfo();
+        if(wi!=null){
+          report.append("Tilkobling: ")
+              .append(wi.getNetworkId()>=0?"aktiv":"ikke bekreftet").append("\n");
+          report.append("Signal: ").append(wi.getRssi()).append(" dBm\n");
+          report.append("Frekvens: ").append(wi.getFrequency()).append(" MHz\n");
+          report.append("Linkhastighet: ").append(wi.getLinkSpeed()).append(" Mbps\n");
+        } else {
+          report.append("Tilkoblingsinformasjon utilgjengelig.\n");
+        }
+      } else {
+        report.append("Wi-Fi deaktivert eller utilgjengelig.\n");
+      }
+    } catch(Exception e) {
+      report.append("Wi-Fi-data utilgjengelig: ").append(e.getClass().getSimpleName()).append("\n");
+    }
+
+    try {
+      ConnectivityManager cm=(ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+      Network active=cm==null?null:cm.getActiveNetwork();
+      NetworkCapabilities caps=cm==null||active==null?null:cm.getNetworkCapabilities(active);
+      report.append("Internett: ")
+          .append(caps!=null&&caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+              ?"nettverk tilgjengelig":"ikke bekreftet").append("\n");
+    } catch(Exception e) {
+      report.append("Internettstatus utilgjengelig.\n");
+    }
+
+    report.append("\nBLUETOOTH • PAREDE ENHETER\n");
+    try {
+      BluetoothAdapter adapter=BluetoothAdapter.getDefaultAdapter();
+      if(adapter==null) {
+        report.append("Bluetooth støttes ikke.\n");
+      } else if(!adapter.isEnabled()) {
+        report.append("Bluetooth er deaktivert.\n");
+      } else {
+        java.util.Set<BluetoothDevice> devices=adapter.getBondedDevices();
+        report.append("Antall parede enheter: ")
+            .append(devices==null?0:devices.size()).append("\n");
+
+        if(devices!=null) {
+          for(BluetoothDevice device:devices) {
+            String name=device.getName();
+            report.append("• ")
+                .append(name==null||name.trim().isEmpty()?"Ukjent enhet":name)
+                .append("\n");
+          }
+        }
+      }
+    } catch(SecurityException e) {
+      report.append("Bluetooth krever Android-tillatelse.\n");
+    } catch(Exception e) {
+      report.append("Bluetooth-data utilgjengelig.\n");
+    }
+
+    report.append("\nANALYSE\n");
+    report.append("Dette er en lokal øyeblikksmåling av nettverk og parede enheter.\n");
+    report.append("Ingen skjult skanning, avlytting eller automatisk opplasting.\n");
+
+    audit("device_intelligence_viewed");
+
+    LinearLayout page=column();
+    page.addView(label("SKYNET INTELLIGENCE",22));
+    page.addView(btn("Tilbake",()->home()));
+
+    TextView result=label(report.toString(),14);
+    result.setBackgroundColor(PANEL);
+    page.addView(result);
+
+    page.addView(btn("Oppdater målinger",this::deviceIntel));
+    setContentView(page);
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode,
+      String[] permissions,int[] grantResults) {
+    super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+    if(requestCode==5201) {
+      if(grantResults.length>0 &&
+          grantResults[0]==PackageManager.PERMISSION_GRANTED) {
+        deviceIntel();
+      } else {
+        reply("Bluetooth-tillatelse avslått. Wi-Fi-analysen er fortsatt tilgjengelig.");
+      }
+    }
+  }
+
   void reply(String s){if(output!=null)output.setText(s);audit("response");}
   void dashboard(){audit("dashboard_open");showWeb("http://127.0.0.1:8766");}
   void audit(String e){if(!auditOn)return;try(FileWriter w=new FileWriter(new File(getFilesDir(),"skynet-audit.log"),true)){w.write(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US).format(new Date())+" "+e.replace("\n"," ")+"\n");}catch(Exception ignored){}}
