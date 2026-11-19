@@ -1,5 +1,10 @@
 package no.skynet.mobile;
 
+import no.skynet.mobile.intelligence.SkynetAiEngine;
+import no.skynet.mobile.intelligence.IntelligenceAi;
+import no.skynet.mobile.intelligence.CognitivePsychologyAi;
+import no.skynet.mobile.intelligence.SentinelCollector;
+
 import android.app.Activity;
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -47,6 +52,7 @@ public class MainActivity extends Activity {
     root.addView(btn("▤  Søk i lokal logg",()->searchLocal()));
     root.addView(btn("🎙  Stemmesøk",this::listen));
     root.addView(btn("📡  Wi-Fi + Bluetooth-analyse",this::deviceIntel));
+    root.addView(btn("🧠  SKYNET AI CORE",()->openAiCenter("")));
     output=label("Hei! Søk på nettet, finn en app eller søk i SKYNETs lokale logg.",15);output.setBackgroundColor(PANEL);root.addView(output);
     root.addView(label("Hurtigvalg",18));root.addView(btn("Status",()->command("status")));root.addView(btn("Personvern",()->command("personvern")));root.addView(btn("Åpne lokalt SKYNET-dashboard",this::dashboard));
     CheckBox cb=new CheckBox(this);cb.setText("Lokal hendelseslogg");cb.setTextColor(Color.WHITE);cb.setChecked(auditOn);cb.setOnCheckedChangeListener((v,on)->{auditOn=on;if(on)audit("audit_enabled");});root.addView(cb);
@@ -96,10 +102,59 @@ public class MainActivity extends Activity {
     if(s.contains("hjelp"))reply("SKYNET kan nettsøk, app-søk, lokalt loggsøk, stemmesøk, status og dashboard.");
     else if(s.contains("status"))reply("SKYNET er klar. Android "+android.os.Build.VERSION.RELEASE+". Lokal logg "+(auditOn?"på":"av")+".");
     else if(s.contains("personvern")||s.contains("sikkerhet"))reply("Ingen bakgrunnslytting. Mikrofon brukes manuelt. Loggen lagres lokalt.");
+    else if(s.contains("sentinel")||s.contains("ai motor")||s.contains("intelligence ai")||s.contains("kognitiv")||s.equals("ai"))openAiCenter(q);
     else if(s.contains("wifi")||s.contains("wi-fi")||s.contains("bluetooth")||s.contains("nettverk"))deviceIntel();
     else if(s.contains("dashboard")||s.contains("åpne skynet"))dashboard();
     else if(s.startsWith("les opp")){String t=q.length()>7?q.substring(7).trim():"SKYNET er klar.";reply(t);if(ttsReady)tts.speak(t,TextToSpeech.QUEUE_FLUSH,null,"skynet");}
     else {if(input!=null)input.setText(q);searchWeb();}
+  }
+
+
+  void openAiCenter(String initial){
+    LinearLayout page=column();
+    page.addView(label("SKYNET AI CORE",24));
+    page.addView(label("Fire lokale analysemoduler • brukerinitiert kjøring",13));
+    page.addView(btn("Tilbake",()->home()));
+
+    EditText prompt=new EditText(this);
+    prompt.setTextColor(Color.WHITE);
+    prompt.setHintTextColor(Color.LTGRAY);
+    prompt.setHint("Skriv en problemstilling for analyse");
+    prompt.setText(initial);
+    prompt.setMinLines(2);
+    prompt.setGravity(android.view.Gravity.TOP);
+    prompt.setBackgroundColor(PANEL);
+    page.addView(prompt,new LinearLayout.LayoutParams(-1,dp(90)));
+
+    TextView result=label("SKYNET AI CORE er klar. Velg en modul.",14);
+    result.setBackgroundColor(PANEL);
+
+    page.addView(btn("🧠 Kjør hele AI-motoren",()->{
+      String q=prompt.getText().toString().trim();
+      result.setText(SkynetAiEngine.run(q,getApplicationContext()));
+      audit("ai_engine_run");
+    }));
+
+    page.addView(btn("🔎 Intelligence AI",()->{
+      result.setText(IntelligenceAi.analyze(prompt.getText().toString()));
+      audit("intelligence_ai_run");
+    }));
+
+    page.addView(btn("🧩 Cognitive Psychology AI",()->{
+      result.setText(CognitivePsychologyAi.analyze(prompt.getText().toString()));
+      audit("cognitive_psychology_run");
+    }));
+
+    page.addView(btn("🛡 SENTINEL_COLLECTOR",()->{
+      result.setText(SentinelCollector.collect(getApplicationContext()));
+      audit("sentinel_collector_run");
+    }));
+
+    page.addView(label("RESULTAT",17));
+    ScrollView scroll=new ScrollView(this);
+    scroll.addView(result);
+    page.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
+    setContentView(page);
   }
 
   void deviceIntel(){
