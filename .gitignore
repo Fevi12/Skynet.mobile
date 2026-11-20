@@ -1,0 +1,9 @@
+.gradle/
+**/build/
+local.properties
+.skynet-diagnostics/
+*.log
+*.bak
+*.bak.*
+*.before-*
+*.skynet-backup

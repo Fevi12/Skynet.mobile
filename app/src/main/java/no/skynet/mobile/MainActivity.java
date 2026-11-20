@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     root.addView(btn("▤  Søk i lokal logg",()->searchLocal()));
     root.addView(btn("🎙  Stemmesøk",this::listen));
     root.addView(btn("📡  Wi-Fi + Bluetooth-analyse",this::deviceIntel));
+    root.addView(btn("🌐  SKYNET nettverksnoder",()->startActivity(new Intent(this,NetworkNodesActivity.class))));
     root.addView(btn("🧠  SKYNET AI CORE",()->openAiCenter("")));
     output=label("Hei! Søk på nettet, finn en app eller søk i SKYNETs lokale logg.",15);output.setBackgroundColor(PANEL);root.addView(output);
     root.addView(label("Hurtigvalg",18));root.addView(btn("Status",()->command("status")));root.addView(btn("Personvern",()->command("personvern")));root.addView(btn("Åpne lokalt SKYNET-dashboard",this::dashboard));
