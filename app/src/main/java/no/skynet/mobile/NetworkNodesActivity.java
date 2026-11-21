@@ -22,6 +22,7 @@ public final class NetworkNodesActivity extends Activity {
     private NsdManager nsd;
     private NsdManager.DiscoveryListener discovery;
     private boolean active;
+    private SkynetMeshAgent localAgent;
     private LinearLayout results;
     private TextView state;
 
@@ -52,6 +53,16 @@ public final class NetworkNodesActivity extends Activity {
         state = label("Inaktiv. Ingen nettverksoppdagelse kjører.", 14);
         root.addView(state);
         root.addView(button("Start lokal oppdagelse", this::startDiscovery));
+        root.addView(button("Publiser denne enheten som SKYNET-node", () -> {
+            if (localAgent == null) localAgent = new SkynetMeshAgent(this);
+            state.setText(localAgent.start()
+                ? "SKYNET-node publisert på lokalnettet."
+                : "Kunne ikke starte lokal node.");
+        }));
+        root.addView(button("Stopp lokal SKYNET-node", () -> {
+            if (localAgent != null) localAgent.stop();
+            state.setText("Lokal node stoppet.");
+        }));
         root.addView(button("Stopp oppdagelse", this::stopDiscovery));
         root.addView(button("Tilbake", this::finish));
         root.addView(label("FUNNE NODER • LOKAL HISTORIKK", 17));
@@ -127,6 +138,7 @@ public final class NetworkNodesActivity extends Activity {
 
     @Override protected void onDestroy() {
         stopDiscovery();
+        if (localAgent != null) localAgent.stop();
         super.onDestroy();
     }
 }
