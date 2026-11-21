@@ -1,10 +1,15 @@
-# SKYNET Mobile 1.1
-Consent-first Android assistant shell with optional Termux/Linux companion.
+# SKYNET Mobile
 
-Implemented: native Android UI; push-to-talk speech recognition (Norwegian); Android TextToSpeech; local allowlisted commands; optional app-private audit log; optional Termux dashboard at http://127.0.0.1:8766.
+SKYNET combines a native Android assistant shell with a static JARVIS-inspired web interface.
 
-Privacy: no always-on microphone, no hidden wake-word, no sensor collection or telemetry upload. Unknown commands do not execute shell commands. Disabling the log stops new entries but does not erase old ones.
+## Website
+The GitHub Pages site in `docs/` includes a multi-chat interface, browser speech input/output, local conversation history, APK downloads, and optional Google Gemini API integration. A Gemini API key is created by the user and stored only in browser local storage. Google free-tier limits and availability may change. Without a key, the website runs in a limited local mode; it is not a full language model.
 
-Roadmap: policy gate, confirmed tool permissions, local RAG with citations, opt-in Sentinel diagnostics, signed update metadata and rollback, separate Termux/Linux companion.
+## Android
+The Android app includes native search, app discovery, manual speech input, text-to-speech, local AI modules, device/network status, and optional local audit logs. No always-on microphone or hidden device control.
 
-This is not an AOSP fork, always-listening wake-word service, autonomous self-training system, or signed OTA updater.
+## Build
+GitHub Actions builds and verifies a debug APK and publishes it to GitHub Releases. Debug APKs are for testing, not production signing.
+
+## Privacy
+The static website does not send chat history to a SKYNET backend. If Gemini is configured, the current conversation context is sent directly from the browser to Google's API. Do not paste secrets into public chats or commit them to Git.
