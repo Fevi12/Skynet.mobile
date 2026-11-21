@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
   }
 
   void reply(String s){if(output!=null)output.setText(s);audit("response");}
-  void dashboard(){audit("dashboard_open");showWeb("http://127.0.0.1:8766");}
+  void dashboard(){audit("dashboard_open");showWeb("https://fevi12.github.io/Skynet.mobile/");}
   void audit(String e){if(!auditOn)return;try(FileWriter w=new FileWriter(new File(getFilesDir(),"skynet-audit.log"),true)){w.write(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",Locale.US).format(new Date())+" "+e.replace("\n"," ")+"\n");}catch(Exception ignored){}}
   @Override public void onBackPressed(){if(web!=null&&web.canGoBack())web.goBack();else{web=null;home();}}
   @Override protected void onDestroy(){if(tts!=null){tts.stop();tts.shutdown();}if(web!=null)web.destroy();super.onDestroy();}
