@@ -25,6 +25,19 @@ def command(args):
     except Exception:
         return None
 
+def safe_wifi(value):
+    if not value:
+        return {"status": "unavailable"}
+    try:
+        result = json.loads(value)
+        return result
+    except (ValueError, TypeError):
+        return {
+            "status": "unavailable",
+            "detail": str(value)[:200]
+        }
+
+
 def godseye():
     try:
         stat = os.statvfs(str(Path.home()))
@@ -44,11 +57,17 @@ def godseye():
         "status": "ONLINE",
         "time": time.strftime("%Y-%m-%d %H:%M:%S"),
         "hostname": socket.gethostname(),
-        "platform": os.uname()._asdict(),
+        "platform": {
+            "system": os.uname().sysname,
+            "node": os.uname().nodename,
+            "release": os.uname().release,
+            "version": os.uname().version,
+            "machine": os.uname().machine
+        },
         "disk": disk,
         "network_interfaces": command(["ip", "-brief", "addr"]),
         "known_network_neighbors": command(["ip", "neigh", "show"]),
-        "wifi": json.loads(wifi) if wifi else "API unavailable",
+        "wifi": safe_wifi(wifi),
         "bluetooth": json.loads(bluetooth) if bluetooth else "API unavailable",
         "battery": json.loads(battery) if battery else "API unavailable"
     }
