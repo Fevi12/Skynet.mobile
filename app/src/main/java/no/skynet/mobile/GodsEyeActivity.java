@@ -11,6 +11,7 @@ import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.LinkProperties;
+import android.net.LinkAddress;
 import java.net.InetAddress;
 
 public final class GodsEyeActivity extends Activity {
@@ -39,7 +40,7 @@ public final class GodsEyeActivity extends Activity {
             LinkProperties lp = cm == null || n == null
                 ? null : cm.getLinkProperties(n);
             if (lp != null) {
-                for (var link : lp.getLinkAddresses()) {
+                for (LinkAddress link : lp.getLinkAddresses()) {
                     InetAddress a = link.getAddress();
                     if (!a.isLoopbackAddress() &&
                         a instanceof java.net.Inet4Address) {
