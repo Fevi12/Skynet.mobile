@@ -165,18 +165,23 @@ public class MainActivity extends Activity {
 
     page.addView(btn("🧠 Kjør hele AI-motoren",()->{
       String q=prompt.getText().toString().trim();
-      result.setText(SkynetAiEngine.run(q,getApplicationContext()));
-      audit("ai_engine_run");
+      String analysis=SkynetAiEngine.run(q,getApplicationContext());
+      result.setText(analysis);
+      rememberAiAnalysis("full",q,analysis);
     }));
 
     page.addView(btn("🔎 Intelligence AI",()->{
-      result.setText(IntelligenceAi.analyze(prompt.getText().toString()));
-      audit("intelligence_ai_run");
+      String q=prompt.getText().toString();
+      String analysis=IntelligenceAi.analyze(q);
+      result.setText(analysis);
+      rememberAiAnalysis("intelligence",q,analysis);
     }));
 
     page.addView(btn("🧩 Cognitive Psychology AI",()->{
-      result.setText(CognitivePsychologyAi.analyze(prompt.getText().toString()));
-      audit("cognitive_psychology_run");
+      String q=prompt.getText().toString();
+      String analysis=CognitivePsychologyAi.analyze(q);
+      result.setText(analysis);
+      rememberAiAnalysis("cognitive",q,analysis);
     }));
 
     page.addView(btn("🛡 SENTINEL_COLLECTOR",()->{
@@ -189,6 +194,18 @@ public class MainActivity extends Activity {
     scroll.addView(result);
     page.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
     setContentView(page);
+  }
+
+  void rememberAiAnalysis(String module,String prompt,String analysis){
+    if(distributedMemory!=null){
+      if(prompt!=null&&!prompt.trim().isEmpty())
+        distributedMemory.remember("user","[AI:"+module+"] "+prompt.trim());
+      if(analysis!=null&&!analysis.trim().isEmpty())
+        distributedMemory.remember("assistant",analysis.length()>6000
+          ? analysis.substring(0,6000)+"\n[Resultat forkortet i lokal hukommelse]"
+          : analysis);
+    }
+    audit("ai_analysis:"+module);
   }
 
   void deviceIntel(){
