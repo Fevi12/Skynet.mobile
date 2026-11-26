@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public final class JarvisActivity extends Activity {
+public final class SkynetCoreActivity extends Activity {
     private SkynetEventBus bus;
     private SkynetOrchestrator core;
     private EditText prompt;
@@ -44,7 +44,7 @@ public final class JarvisActivity extends Activity {
         root.setPadding(dp(16),dp(12),dp(16),dp(16));
         root.setBackgroundColor(Color.rgb(5,12,22));
 
-        root.addView(label("SKYNET • JARVIS CORE",25));
+        root.addView(label("SKYNET • SKYNET CORE",25));
         root.addView(label("EVENT-DRIVEN INTELLIGENCE",13));
         root.addView(label("RUNTIME ACTIVE • TOOLS "+core.toolCount(),14));
 

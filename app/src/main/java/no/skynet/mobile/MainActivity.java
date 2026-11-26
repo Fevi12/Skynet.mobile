@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
     root.addView(btn("📡  Wi-Fi + Bluetooth-analyse",this::deviceIntel));
     root.addView(btn("🌐  SKYNET nettverksnoder",()->startActivity(new Intent(this,NetworkNodesActivity.class))));
     root.addView(btn("GOD'S EYE VIEW",()->startActivity(new Intent(this,GodsEyeActivity.class))));
-    root.addView(btn("JARVIS CORE",()->startActivity(new Intent(this,JarvisActivity.class))));
+    root.addView(btn("SKYNET CORE",()->startActivity(new Intent(this,SkynetCoreActivity.class))));
     root.addView(btn("🧠  SKYNET AI CORE",()->openAiCenter("")));
     root.addView(btn("🌐  SKYNET DISTRIBUTED",this::openDistributed));
     output=label("Hei! Søk på nettet, finn en app eller søk i SKYNETs lokale logg.",15);output.setBackgroundColor(PANEL);root.addView(output);
